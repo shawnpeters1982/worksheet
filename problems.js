@@ -1,4 +1,6 @@
 let questionNum = 0
+let correct = 0
+let shortCorrect = []
 const cations = [
     ["Li", "lithium", 1, "common"],
     ["Na", "sodium", 1, "common"],
@@ -6,6 +8,9 @@ const cations = [
 
     ["Be", "beryllium", 2, "common"],
     ["Mg", "magnesium", 2, "common"],
+    ["Ca", "calcium", 2, "common"],
+
+    ["Al", "aluminium", 3, "common"],
 ]
 const anions = [
     ["F", "fluorine", "fluoride", 1, "common"],
@@ -14,9 +19,12 @@ const anions = [
     ["I", "iodine", "iodide", 1, "common"],
 
     ["O", "oxygen", "oxide", 2, "common"],
-    ["S", "sulfur", "sulfide", 2, "common" ]
+    ["S", "sulfur", "sulfide", 2, "common" ],
 
+    ["N", "nitrogen", "nitride", 3, "common"],
+    ["P", "phosphorus", "phosphide", 3, "common"]
 ]
+
 
 class Cation {
     constructor(symbol, name, charge, additional_info) {
@@ -164,7 +172,23 @@ function generateQuestion(ions) {
 
     return [questionStem, questionAnswer]
 }
+function updateScore() {
+    const longScore = document.querySelector("#long-score")
+    longScore.innerHTML = `<p>Total average: ${Math.round(100*correct/questionNum)}%</p>`
+    const shortScore = document.querySelector("#short-score")
 
+    if(shortCorrect.length > 10) {
+        shortCorrect.shift()
+    }
+    let sum = 0
+
+    shortCorrect.forEach ((num) => {
+        sum+=num
+    })
+
+    shortScore.innerHTML = `<p>Short-term average ${100*sum/shortCorrect.length}</p>`
+
+}
 function newQuestion(ions) {
    const [questionStem, questionAnswer] = generateQuestion(ions)
    questionNum ++
@@ -189,14 +213,18 @@ function newQuestion(ions) {
 
 
     answer_button.addEventListener("click", () => {
-        console.log(answer_button.getAttribute("counter"))
+        
         if (spellCheck(questionAnswer,answer.value)) {
             answer.disabled = true;
             status.innerHTML = `Yes, ${questionAnswer} is correct!`
+            correct ++
+            shortCorrect.push(1)
             answer_button.remove()
+            updateScore()
             newQuestion(ions)
+            
         }
-        else if (answer_button.getAttribute("counter") < 5) {
+        else if (answer_button.getAttribute("counter") < 3) {
             status.innerHTML = `${answer.value} is incorrect. Try again.`
             answer_button.setAttribute("counter",  parseInt(answer_button.getAttribute("counter")) + 1)
         }
@@ -204,6 +232,8 @@ function newQuestion(ions) {
             status.innerHTML = `${questionAnswer} was the correct answer. Let's try another.`
             answer.disabled = true;
             answer_button.remove()
+            shortCorrect.push(0)
+            updateScore()
             newQuestion(ions)
 
         }
